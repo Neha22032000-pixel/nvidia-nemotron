@@ -22,6 +22,7 @@ Publicly described task families include:
 
 - `docs/competition_notes.md` - distilled competition notes and assumptions
 - `docs/project_plan.md` - working plan and milestones
+- `docs/submission_checklist.md` - what must be verified before submitting
 - `data/raw/` - official Kaggle files and external raw references
 - `data/processed/` - normalized train/eval data
 - `notebooks/` - exploratory analysis
@@ -38,8 +39,24 @@ Once Kaggle credentials and a Python environment are ready:
 kaggle competitions download -c nvidia-nemotron-model-reasoning-challenge -p data/raw
 ```
 
-Then start with:
+Inspect the downloaded files:
 
 ```powershell
 python scripts/inspect_data.py
 ```
+
+Generate starter synthetic reasoning data:
+
+```powershell
+python scripts/generate_synthetic.py --count 1000 --output data/processed/synthetic_train.jsonl
+```
+
+Run tests:
+
+```powershell
+pytest
+```
+
+## Submission Status
+
+No Kaggle submission has been made yet. The exact adapter packaging format must be confirmed from the official competition files before submitting.
