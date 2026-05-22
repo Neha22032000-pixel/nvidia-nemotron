@@ -44,8 +44,6 @@ def main(
     gradient_accumulation_steps: int = 16,
 ) -> None:
     hf_token = os.environ.get("HF_TOKEN")
-    if not hf_token:
-        raise RuntimeError("Set HF_TOKEN in the environment or as a Kaggle Secret before training.")
 
     train = pd.read_csv(train_path, dtype={"id": str})
     if max_rows:
@@ -90,9 +88,6 @@ def main(
             "k_proj",
             "v_proj",
             "o_proj",
-            "gate_proj",
-            "up_proj",
-            "down_proj",
         ],
     )
 
