@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Data and model artifacts
+data/raw/*
+data/processed/*
+models/*
+submissions/*
+
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!models/.gitkeep
+!submissions/.gitkeep
+
+# Local secrets
+.env
+kaggle.json
