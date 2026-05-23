@@ -84,7 +84,7 @@ def main(
         max_memory=max_memory,
         offload_folder=str(offload_dir),
         low_cpu_mem_usage=True,
-        attn_implementation="sdpa",
+        attn_implementation="eager",
         trust_remote_code=True,
     )
     model = prepare_model_for_kbit_training(model)
