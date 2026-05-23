@@ -1,9 +1,9 @@
 accelerate>=0.33.0
 bitsandbytes>=0.43.0
-causal-conv1d>=1.4.0
 datasets>=2.20.0
 kaggle>=1.6.17
-mamba-ssm>=2.2.2
+ninja>=1.11.0
+packaging>=24.0
 pandas>=2.2.0
 peft>=0.12.0
 scipy>=1.11.0
