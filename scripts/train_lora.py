@@ -35,13 +35,16 @@ def main(
     output_dir: Path = MODELS_DIR / "nemotron-lora-r32",
     model_name: str = "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
     max_rows: int | None = None,
-    max_length: int = 1024,
-    lora_rank: int = 32,
-    lora_alpha: int = 64,
+    max_length: int = 512,
+    lora_rank: int = 16,
+    lora_alpha: int = 32,
     learning_rate: float = 2e-4,
     epochs: float = 1.0,
     batch_size: int = 1,
     gradient_accumulation_steps: int = 16,
+    gpu_memory_gib: int = 13,
+    cpu_memory_gib: int = 28,
+    offload_dir: Path = MODELS_DIR / "offload",
 ) -> None:
     hf_token = os.environ.get("HF_TOKEN")
 
@@ -67,15 +70,27 @@ def main(
         bnb_4bit_compute_dtype=torch.float16,
         bnb_4bit_use_double_quant=True,
     )
+    gpu_count = torch.cuda.device_count()
+    max_memory = {idx: f"{gpu_memory_gib}GiB" for idx in range(gpu_count)}
+    max_memory["cpu"] = f"{cpu_memory_gib}GiB"
+    offload_dir.mkdir(parents=True, exist_ok=True)
+    console.print(f"Detected {gpu_count} CUDA devices; max_memory={max_memory}")
+
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         token=hf_token,
         quantization_config=quant_config,
         device_map="auto",
+        max_memory=max_memory,
+        offload_folder=str(offload_dir),
+        low_cpu_mem_usage=True,
+        attn_implementation="sdpa",
         trust_remote_code=True,
     )
     model = prepare_model_for_kbit_training(model)
     model.config.use_cache = False
+    model.gradient_checkpointing_enable()
+    console.print(f"Device map: {getattr(model, 'hf_device_map', None)}")
 
     lora_config = LoraConfig(
         r=lora_rank,
@@ -110,6 +125,7 @@ def main(
         optim="paged_adamw_8bit",
         lr_scheduler_type="cosine",
         warmup_ratio=0.03,
+        gradient_checkpointing=True,
     )
     trainer = Trainer(
         model=model,
