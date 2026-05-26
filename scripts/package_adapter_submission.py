@@ -7,6 +7,7 @@ import typer
 from rich.console import Console
 
 from nemotron_challenge.paths import MODELS_DIR, SUBMISSIONS_DIR
+from validate_adapter_submission import main as validate_submission
 
 
 app = typer.Typer(add_completion=False)
@@ -20,8 +21,8 @@ REQUIRED_FILES = {
 
 @app.command()
 def main(
-    adapter_dir: Path = MODELS_DIR / "nemotron-lora-r32",
-    output: Path = SUBMISSIONS_DIR / "submission.zip",
+    adapter_dir: Path = typer.Argument(MODELS_DIR / "nemotron-lora-r32"),
+    output: Path = typer.Argument(SUBMISSIONS_DIR / "submission.zip"),
 ) -> None:
     if output.name != "submission.zip":
         raise ValueError("Kaggle requires the uploaded file to be named submission.zip")
@@ -42,6 +43,7 @@ def main(
                 archive.write(path, arcname=path.relative_to(adapter_dir))
 
     console.print(f"Wrote {output} from adapter files in {adapter_dir}")
+    validate_submission(output)
 
 
 if __name__ == "__main__":
