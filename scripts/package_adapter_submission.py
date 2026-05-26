@@ -17,6 +17,7 @@ console = Console()
 REQUIRED_FILES = {
     "adapter_config.json",
 }
+WEIGHT_FILES = ("adapter_model.safetensors", "adapter_model.bin")
 
 
 @app.command()
@@ -33,14 +34,14 @@ def main(
     missing = REQUIRED_FILES - existing
     if missing:
         raise ValueError(f"Adapter directory is missing required files: {sorted(missing)}")
-    if not ({"adapter_model.safetensors", "adapter_model.bin"} & existing):
+    weight_file = next((name for name in WEIGHT_FILES if name in existing), None)
+    if weight_file is None:
         raise ValueError("Adapter directory must contain adapter_model.safetensors or adapter_model.bin")
 
     output.parent.mkdir(parents=True, exist_ok=True)
     with ZipFile(output, "w", compression=ZIP_DEFLATED) as archive:
-        for path in sorted(adapter_dir.rglob("*")):
-            if path.is_file():
-                archive.write(path, arcname=path.relative_to(adapter_dir))
+        for name in ("adapter_config.json", weight_file):
+            archive.write(adapter_dir / name, arcname=name)
 
     console.print(f"Wrote {output} from adapter files in {adapter_dir}")
     validate_submission(output)
