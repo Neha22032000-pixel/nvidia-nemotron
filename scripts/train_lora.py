@@ -91,7 +91,9 @@ def main(
     batch_size: int = 1,
     gradient_accumulation_steps: int = 16,
     gpu_memory_gib: int = 13,
+    gpu0_memory_gib: int | None = None,
     cpu_memory_gib: int = 28,
+    device_map: str = "auto",
     offload_dir: Path = MODELS_DIR / "offload",
 ) -> None:
     hf_token = os.environ.get("HF_TOKEN")
@@ -131,6 +133,8 @@ def main(
     )
     gpu_count = torch.cuda.device_count()
     max_memory = {idx: f"{gpu_memory_gib}GiB" for idx in range(gpu_count)}
+    if gpu0_memory_gib is not None and gpu_count:
+        max_memory[0] = f"{gpu0_memory_gib}GiB"
     max_memory["cpu"] = f"{cpu_memory_gib}GiB"
     offload_dir.mkdir(parents=True, exist_ok=True)
     console.print(f"Detected {gpu_count} CUDA devices; max_memory={max_memory}")
@@ -139,7 +143,7 @@ def main(
         model_name,
         token=hf_token,
         quantization_config=quant_config,
-        device_map="auto",
+        device_map=device_map,
         max_memory=max_memory,
         offload_folder=str(offload_dir),
         low_cpu_mem_usage=True,
