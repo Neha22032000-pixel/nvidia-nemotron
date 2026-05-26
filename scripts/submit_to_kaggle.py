@@ -3,10 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import typer
-from kaggle.api.kaggle_api_extended import KaggleApi
 from rich.console import Console
 
 from nemotron_challenge.paths import SUBMISSIONS_DIR
+from validate_adapter_submission import main as validate_submission
 
 
 COMPETITION = "nvidia-nemotron-model-reasoning-challenge"
@@ -19,11 +19,20 @@ console = Console()
 def main(
     file_path: Path = SUBMISSIONS_DIR / "submission.zip",
     message: str = "submission from repo script",
+    skip_validation: bool = typer.Option(
+        False,
+        "--skip-validation",
+        help="Submit without running structural adapter validation.",
+    ),
 ) -> None:
     if file_path.name != "submission.zip":
         raise ValueError("Kaggle requires the uploaded file to be named submission.zip")
     if not file_path.exists():
         raise FileNotFoundError(file_path)
+    if not skip_validation:
+        validate_submission(file_path, strict=True)
+
+    from kaggle.api.kaggle_api_extended import KaggleApi
 
     api = KaggleApi()
     api.authenticate()
