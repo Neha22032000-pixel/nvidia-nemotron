@@ -1,23 +1,66 @@
-# Kaggle Submission Checklist
+# Submission Checklist
+
+Use this checklist before every Kaggle upload.
 
 ## Needed From User
 
-- Accept the Kaggle competition rules on the competition page.
-- Provide Kaggle API access locally, preferably by placing `kaggle.json` in the standard Kaggle config folder rather than pasting secrets into chat.
-- Confirm Hugging Face access to `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16` and any required license terms.
-- Provide or approve a GPU runtime for training; local Windows CPU is not realistic for a 30B LoRA workflow.
+- Kaggle competition rules must be accepted.
+- Kaggle API access must be available locally.
+- GPU/runtime choice must be approved before training.
+- Do not paste or commit private tokens.
 
-## Before First Submission
+## Required Files
 
-- Download official competition files into `data/raw/`.
-- Inspect schema with `python scripts/inspect_data.py`.
-- Confirm the exact adapter directory and archive format Kaggle expects.
-- Confirm LoRA constraints, especially rank, target modules, tokenizer handling, and model revision.
-- Run a tiny end-to-end smoke package before training the real adapter.
+`submission.zip` must contain root-level:
 
-## Submission Guardrails
+```text
+adapter_config.json
+adapter_model.safetensors
+```
+
+Do not put these inside a subfolder.
+
+## Structural Check
+
+Run:
+
+```powershell
+python scripts/validate_adapter_submission.py submissions/submission.zip --strict
+```
+
+The check must report:
+
+- rank `<= 32`,
+- non-empty tensor file,
+- matching LoRA A/B tensor counts,
+- no missing root files.
+
+Warnings must be understood before submitting.
+
+## Behavioral Check
+
+Before upload, record:
+
+- adapter source/run id,
+- zip SHA256,
+- training data source,
+- final loss or min-logprob report,
+- small validation outputs,
+- whether answers use `\boxed{...}`.
+
+## Guardrails
 
 - Do not include raw private credentials, full model weights, or generated caches.
-- Include only the adapter and required metadata files.
-- Record the training data mix, seed, LoRA config, and commit SHA for every submission.
-- Keep each submitted artifact under `submissions/` locally, but do not commit it unless it is small and allowed.
+- Do not blindly submit public notebook outputs unless the exact artifact and logs are verified.
+- Treat `target_parameters`, `in_proj`, `out_proj`, and full `base_layer` tensors as risky until vLLM compatibility is proven.
+- Keep submitted artifacts under `submissions/` locally, but do not commit large zips.
+
+## Upload
+
+After validation:
+
+```powershell
+python scripts/submit_to_kaggle.py submissions/submission.zip --message "short run description"
+```
+
+Use `--skip-validation` only for emergency debugging. Do not use it for real leaderboard attempts.
